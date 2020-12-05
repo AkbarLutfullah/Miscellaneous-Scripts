@@ -1,0 +1,115 @@
+NLP
+
+NLP is a field within AI, that gives machines the ability to read, understand and derive meaning from human languages
+Human languages typically in the form of speech and/or text
+Intersection of human languages and data science
+Common use case of NLP is amazons alexa and apples siri, these are examples of intellegent voice driven interfaces that use NLP to respond to vocal prompts and do evertyhing
+Another case of NLP is in selection phases of talent recruitment, identifying skills of potential hires and spotting prospects before they come on the market
+
+1. What are the data types used in Python?
+
+string
+list
+tuple
+dict
+set
+number (float int)
+
+2. Explain the difference between lists and tuples.
+
+lists are mutable whilst tuples are immutable
+both are data types in python that hold values of your data
+lists are represented by []
+and tuples are represented by ()
+
+3. What is a Python dictionary?
+
+another data type in python and are muttable 
+they are represented by {}
+it defines an unordered mapping of by keys and values 
+my_dict = {'name': 'Hugh Jackman', 'age': 50, 'films': ['Logan', 'Deadpool 2', 'The Front Runner']}
+my_dict['age']
+
+4. What are lambda functions?
+Lambda functions are anonymous functions in Python. They’re very helpful when you need to define a function that’s very short and consists of only one expression. So, instead of formally defining the small function with a specific name, body, and return statement, you can write everything in one short line of code using a lambda function.
+
+Here’s an example of how lambda functions are defined and used:
+
+(lambda x, y, z: (x+y) ** z)(3,2,2)
+25
+
+5. Explain list comprehensions and how they’re used in Python.
+List comprehensions provide a concise way to create lists.
+
+A list is traditionally created using square brackets. But with a list comprehension, these brackets contain an expression followed by a for clause and then if clauses, when necessary. Evaluating the given expression in the context of these for and if clauses produces a list.
+
+It’s best explained with an example:
+
+old_list = [1, 0, -2, 4, -3]
+new_list = [x**2 for x in old_list if x > 0]
+print(new_list)
+
+6. What is a negative index, and how is it used in Python?
+A negative index is used in Python to index a list, string, or any other container class in reverse order (from the end). Thus, [-1] refers to the last element, [-2] refers to the second-to-last element, and so on.
+
+Here are two examples:
+
+list = [2, 5, 4, 7, 5, 6, 9]
+print (list[-1])
+9
+text = "I love data science"
+print (text[-3])
+n
+
+7. Name some well-known Python data analysis libraries.
+If you’re doing data analysis with Python, you’re likely going to use:
+
+NumPy
+Pandas
+Matplotlib
+Seaborn
+SciKit
+These libraries will help you work with arrays and DataFrames, build professional-looking plots, and run machine learning models.
+
+8. What is pandas?
+
+Pandas is a Python open-source library that provides high-performance and flexible data structures and data analysis tools that make working with relational or labeled data both easy and intuitive.
+
+9. Write Python code to create an employees DataFrame from the “HR.csv” file.
+We can create a DataFrame from a CSV file by using the read_csv() function from the pandas library. By convention, pandas is imported as pd. So the code is simply the following:
+
+import pandas as pd
+emloyees = pd.read_csv('HR.csv')
+
+10. What is the default missing value marker in pandas, and how can you detect all missing values in a DataFrame?
+In pandas, the default missing value marker is NaN.
+
+You can detect all missing values in a DataFrame by using the isna() function from the pandas library:
+
+employees.isna()
+
+11. Write Python code to select the Department and Age columns from the employees DataFrame.
+You can select multiple columns from a DataFrame by passing in their names to double square brackets:
+
+employees[['Department', 'Age']]
+
+12. Add a new column named Active to the employees DataFrame with all 1s to indicate each employee’s active employment status.
+You can create a new column with a particular value for all entries by simply assigning this value to the whole column:
+
+employees['Active'] = 1
+employees.head()
+
+13. Write Python code to plot the distribution of employees by age.
+To plot the distribution of employees by age, you’ll simply need to create a histogram from the Age column of the employees DataFrame. This can be done by calling the hist() function on the selected column:
+
+employees['Age'].hist()
+
+14. What libraries do data scientists use to plot data in Python?
+Matplotlib is the main library used for plotting data in Python. However, the plots created with this library need lots of fine-tuning to look shiny and professional. For that reason, many data scientists prefer Seaborn, which allows you to create appealing and meaningful plots with only one line of code.
+
+15. What Python IDEs are the most popular in data science?
+Granted, you won’t be asked this exact question, but it’s likely that your prospective employer will still want to get a better sense of how you work with Python and what exposure you have to the language.
+
+In that case, it’s good to know that Jupyter Notebook, PyCharm, and Spyder are all good Python IDEs, but Jupyter Notebook is arguably the best for data science.
+
+Interested in exploring some other Python IDEs for data science? Check out this article.

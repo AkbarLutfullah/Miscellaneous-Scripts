@@ -1,0 +1,4 @@
+Hadoop is a framework to store and process large amounts of data in computer clusters; hadoop is composed of modules that are formed together and make the hadoop framework such as HDFS
+Spark is a lightning fast cluster computing technology that is designed for fast computation; main spark feature is in memory cluster computing that speeds up process 
+Spark uses RDD
+

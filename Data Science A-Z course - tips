@@ -1,0 +1,150 @@
+ETL notes
+
+Editing dates - data>text to columns>delimiter uncheck>set to date>MDY format
+              - right click and edit to YYYYMMDD format
+			  
+Editing balances - create new column 
+                 - type in code: =SUBSTITUTE(SUBSTITUTE($A1,"$",""),",","")
+				
+Avoiding errors with data
+
+- Once you have created a dataflow from the flat file to OLE DB and you are looking to input your csv file into flat file be careful about the text qualifer
+- If you do not specify a tq then your data will get skewed i.e. in this case the card type had numbers etc
+- To avoid this tq needs to be "
+- Note : if you do not specify a text qualifier then SSIS no longer recognises quotations as text or a string and therefore seprates the feedback cell by the comma
+- so in essence because we want to segregate our data from one speech bubble to the next, we use " as a text qualifier and SSIS understands the column starts before the " and also ends after it
+- for every project have separate database or separate schema
+
+Fixing anomalies with text
+- stack up original text file with prepared file in notepadd++
+- go to row that is throwing an error or is skewed 
+- check to see if " are lined up, excel compensates for corrupt data by including " which in turn produces unwanted " and this affects the data entry into the flat file
+- place " in the correct location and proceed
+- if the original is showing missing data then you may need to remove the data altogether as even excel cannot fix that
+- so both initial errors have been around text qualifier ". In one case it was in the wrong place and in the other case the data had missing columns so we got rid off it
+
+when you incur error The column "Column x" cannot be processed because more than one code page (65001 and 1252) are specified for it...THERE are 2 solutions:
+1. Set the "alwaysUseDefaultCodePage" property of the destination OLEDB connection to True.
+2. Change the codepage property of the OLEDB connection to 65001 or flat file connection to 1252-ANSI
+3. Once we executed the data, the analysis stopped at row 31k - we check the error message and go to that row in notepadd++..turns out there was a truncation error as the "feedback" column had an extremely long message
+4. To fix this, we go back into the flat file connection manager and change the character lentgh from 1k to 5k, the same needs to be done for the flat file source
+5. Now delete the table in OLE DB and recreate new table
+6. View in SQL studio to validate results
+
+Finding corrupt errors/anomalies in SQL
+- so once you have uploaded all the rows in your dataset, select all rows in SQL via table command
+- you may notice discrepancies in rows between the total uploaded and the total displayed i.e. our dataset contains 50k rows, the number displayed by SQL is 50,004
+- we now need to query the data
+- tips: query the end of the table i.e. the last few columns 
+- we have longitude and lastly column 46 (which is blank)
+- 1st query code: WHERE [Column 46] NOT LIKE '' ---> wherever the last column is not blank i.e. a dataset has shifted to the right plz show me this row
+- OR [Longitude] NOT LIKE '%.%' ---> wherever the penultimate column does not have a decimal i.e. dataset has shifted to the left plz show me this row
+- Basically, we are accoutning of shifts in the data to the right/left
+- Once executed we can view the corrupted/missing data rows; upto us if we want to fix these errors in SQL or SSIS, instrcutor prefers SSIS
+- for SSIS process, first 'truncate table' in SQL to hide all data other than columns; intermediary step and not entirely sure why it was done, I am now.. so we are doing all this wrangling in SSIS to obtain a nice clean table, our previous table has insufficient data etc which is why we truncate it after which we create conditional splits and then later we can re-view the table for analysis
+- go back to SSIS and include additional step between OLE DB destination and flat file source
+- move conditional split from sources to other transforms 
+- extend blue arrow to conditional split and add in condition of right/left shifts under 'bad records'; at the bottom include 'good records' as the opposite of bad record commands
+- add flat file source destination as we need to save our bad records somewhere
+- create new folder in analysis section under bad records - once you have executed your data, this folder will be automatically populated with bad records
+- extend other blue line to OLE DB destination and this will automatically be named good records
+- NOTE - you may have to switch up code page default language(s) to 65001/1252 - ANSI
+- NOTE - you would only add insufficient data conditional split when you know you need to include certain columns for sure
+
+Essential check once the data has been uploaded to the database
+- Open SQL and delete everything from select - from
+- Type COUNT(*) 
+- This number of rows must equal total number of datasets uploaded to OLE DB database 
+- Very important to disable your package once the required table has been created and uploaded to the database 
+
+SQL tips and tricks 
+- SELECT * FROM [TABLE} : selects all rows
+- We already know how to select top 1000 rows
+- Can also select specific columns by specifying 
+- Think of dbo as a prefix/subfolder/schema
+- To avoid selecting DB in top left hand drop down and in the command after from, just type in the following at the top of the script: USE 'DB' enter GO
+- If you have entered data into SQL as text then when you want to bring up the numbers from a specific column such as furniture, you will have to pass the FLOAT command before the column
+- To identify/search for elements in a string be sure to make use of wildcards; you will have to use LIKE/NOT LIKE and % and _
+- Code for multiline comments */ and end with /*
+- Single line comment -- and end with nothing 
+- Order table by 'product name', type in 'ORDER BY' after FROM.. this will give ascending order i.e A-Z 
+- For descending add DESC at the end
+- To arrange sales (numericals) by order, you cant just pass the above command as we inputted data into SQL as text
+- Instead you need to pass the following ORDER BY CAST ([Sales] as FLOAT) DESC
+
+
+
+Data Types
+- Varchar(n) - basically any string or text and n is # of characters; 'Hello, my name is Akbar'
+- Int - 25 - refrain from using int cos even if order id or region are in numericals, the fact that we arent going to be taking averages of these indexes or muliplying them etc we cant really treat them as numbers, instead they are varchar
+- Float - 104.40 [if you multiply int by float, resultng column will be float]
+- Date - yyyy-mm-dd
+- Datetime - yyyy-mm-dd hh:mm:ss
+- Bit - 1 
+- Money - run FROM IT, always convert to float type in SQL
+- SQL converts data using implicit and explicit conversions
+- Implicit ones are where SQL automatically does it
+- Explicit ones are where we use CAST/CONVERT
+- When ordering by numericals and imported as text file; ORDER BY (CAST[Sales] as FLOAT) same as ORDER BY CONVERT(FLOAT, [Sales])... for dates use convert cos after second comma you can specify data, for all else use CAST
+- When comparing to NULLs, keep in mind normal operators the ones that would work on integers and floats won't apply i.e. you cant use <>,= etc
+- Instead you can say IS NULL NOT NULL i.e. [discount] is NULL 
+
+Joining tables in SQL
+- Inner joins - only common rows are obtained
+- Left joins - all rows in left table obtained + common rows
+- Right joins - vice versa
+- Full join - contains all rows from both tables + common elements 
+- Use multiple fields when joining to avoid duplication of results
+- code for left join:
+SELECT * 
+FROM [TABLE A]A
+LEFT JOIN [TABLE B] B
+ON A.[ORDER ID] = B.[ORDER ID]
+
+- Stored procedures in DS used to save our code in SQL for codes between BEGIN and END
+- VERY IMPORTANT TO RUN THE WHOLE PROC BEFORE CLOSIGN SQL COS OTHERWISE THE PROC WONT BE SAVED AND UPDATED
+- BE SURE TO HIGHLIGHT PROC TO SAVE IT and change template so that ALTER PROC comes right after GO and before author
+- To check a result just highlight the command and execute, but to save you will have to hihlight the from alter proc to end OR the whole script
+- Keep zipcodes in VARCHAR cos this data type is not going to be modified or ordered etc, so not stored as a number..same with customer id
+- Sometimes, when we are working with 2 tables and you want to join table using customer ids but the problem is the leading zeros did not carry through from the original file
+- Then we must return these leading zeros
+- Go to [INSERT INFO] and under SELECT we need to modify customer id column, type the following:
+RIGHT('0000000'+[Customer ID],7).. so basically plz add zeros to the start of the customer id and make sure that the total number of numbers in customer id are 7, so SQL cuts off the characters from the right @7
+- SELECT bit is the most important and all modifications are done there
+- Have set up proc template, use ctr+H to replace all 'table name' with table name
+- Archive procs by renaming proc to zzz.bckup_date_tablename and then go into proc and click create proc - now you have a copy
+
+
+NOTE - COME BACK TO 173 AND FIX LEFT JOIN 
+TELT - thats what we learned
+
+- Once proc has been created and table has been selected and into too then you may see this error 'Error converting data type varchar to float'
+- This basically says the implicit conversion of text to float was unsuccessful as there are some variables in your potential float columns i.e. balance and interest rate that arent actually floats
+- So we investigate both columns to see which one is causing trouble, start with balance and use ISNUMERIC under FROM and before END:
+--FILTERS:
+WHERE ISNUMERIC([Balance]) = 1 .. means if balance is a numeric i.e. 1 then please insert into our WRK table
+- So we executed and intentionallly left the varchar(7) for zipcode cos we already know zipcode is 7 and this was just some QA to act as a trigger for us to see whether our zipcode exceeds 7 or not
+- We got a truncation error and suspect zipcode, changed zipcode to (10) and added in LEN condition under ISNUMERIC:
+AND   LEN([ZipCode]) <= 7  .. this will only include zipcode columns that have zipcode less than 7
+- So lets say you have domain knowledge and you know that balance cannot be less than 0, so you would copy INSERT INTO underneath row verification anf replace with ADDITIONAL EXCLUSIONS where you would now include the following:
+SELECT*
+FROM [WRK_FakeNamesCanada]
+WHERE ([Balance]) < 0 .. so now you run this and get 1 row where balance is less than 0, deal with at as per your discretion
+- If you want to deal with this row then copy row with header and paste into separate txt file or table etc
+- to delete that one row simply replace SELECT* with DELETE
+
+Removing duplicates from data
+- If you know from the beginning that your dataset contains duplicates for eg in customer id, then use excel by conditional formatting and remove duplicates under data
+- If you already imported data into SQL server then one of 2 options
+- So firstly, if you executed command twice and uploaded a duplcate dataset then use the following:
+DELETE 
+FROM [TABLE NAME]
+WHERE [RowNumber] > x
+This will only apply when you have figured out what the row number is from where your data started duplicating
+It was easy for me to identify this in the homework cos i knew that the total number of rows was 1049999 and so i deleted everything > 1049999
+- However, there will be times when you have to delete duplicates from a specific column i.e. [customer id]
+- As mentioned above, you can either do this maniupluation in excel, but if its too late for that, just use SQL query:
+SELECT [Customer ID], count(*)
+FROM [WRK_TABLENAME]
+GROUP BY [Customer ID]
+HAVING COUNT(*) > 1

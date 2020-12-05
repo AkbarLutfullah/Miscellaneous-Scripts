@@ -1,0 +1,17 @@
+LEN([2014]) == 0 || LEN([2015]) == 0 || LEN([2016]) == 0
+
+
+[Conditional Split [2]] Error: The expression "LEN([2014]) == 0 || LEN([2015]) == 0 || LEN([2016]) == 0" on "Conditional Split.Outputs[Insufficient Data]" evaluated to NULL, but the "Conditional Split" requires a Boolean results. Modify the error row disposition on the output to treat this result as False (Ignore Failure) or to redirect this row to the error output (Redirect Row).  The expression results must be Boolean for a Conditional Split.  A NULL expression result is an error.
+
+
+[Conditional Split [14]] Error: The expression "Gender == "M"" on "output "Male" (100)" evaluated to NULL, but the "component "Conditional Split" (14)" requires a Boolean results. Modify the error row disposition on the output to treat this result as False (Ignore Failure) or to redirect this row to the error output (Redirect Row).  The expression results must be Boolean for a Conditional Split.  A NULL expression result is an error.
+
+
+It seems you've NULL values coming from source for Gender field which is causing the issue. You've determine what do you done with it. Ideally you should define a new output for it and redirect NULL rows separately and you should modify condition as below for Male output
+Gender == "M" on output "Male" (100)
+(ISNULL(Gender) == False && Gender == "M")
+
+[SSIS.Pipeline] Error: SSIS Error Code DTS_E_PRIMEOUTPUTFAILED.  The PrimeOutput method on Flat File Source returned error code 0xC02020C4.  The component returned a failure code when the pipeline engine called PrimeOutput(). The meaning of the failure code is defined by the component, but the error is fatal and the pipeline stopped executing.  There may be error messages posted before this with more information about the failure.
+
+
+May be late, but perhaps it can help you or someone else: you can find the checkbox on a SSIS job step from the SQL Job Agent. On the job step stay on General, go to tab Configuration, go to subtab Advanced and you'll see a checkbox "32-bit runtime" on the bottom. This will make just this job step run in 32-bit (X86). 
